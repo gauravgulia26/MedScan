@@ -288,7 +288,7 @@ def main():
         )
         st.link_button("Contact Us", "mailto:grvgulia007@gmail.com")
 
-    st.title("MedScan, Your Personal Health Assistant.")
+    st.title("Med-Scan Your Personal Health Assistant 🏥")
     # Clear cached summary when a new PDF is uploaded
     if "prev_file" not in st.session_state:
         st.session_state["prev_file"] = None
