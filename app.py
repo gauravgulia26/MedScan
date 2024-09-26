@@ -1,7 +1,5 @@
 import os
 import re
-from reportlab.pdfgen import canvas
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
@@ -15,9 +13,9 @@ from langchain_community.vectorstores import FAISS
 import streamlit as st
 
 st.set_page_config(layout="wide", page_title="MedScan", page_icon="🩺")
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 
 # Disable caching on data ingestion and text cleaning functions

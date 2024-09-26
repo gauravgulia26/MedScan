@@ -13,4 +13,4 @@ langchain-huggingface
 faiss-gpu
 streamlit-extras
 PyPDF2
-reportlab
+pycryptodome
