@@ -13,8 +13,10 @@ from langchain_groq import ChatGroq
 from langchain_community.vectorstores import FAISS
 import streamlit as st
 st.set_page_config(layout="wide", page_title="MedScan", page_icon="🩺")
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
+
+
 # Disable caching on data ingestion and text cleaning functions
 def data_ingestion(url):
     pdf_reader = PdfReader(url)
@@ -187,9 +189,9 @@ def main():
         .st-b {
             font-size: 12px;
             color: lime;
-            background-color: black;
-            border-radius: 10px;
-            padding: 4px;
+            # background-color: black;
+            # border-radius: 10px;
+            # padding: 4px;
             text-align: center;
         }
         .st-r {
@@ -219,7 +221,10 @@ def main():
             """,
             unsafe_allow_html=True,
         )
-
+        st.markdown(
+            "<p class='st-b'>If you get Rate Limit Error, Contact Us.</p>",
+            unsafe_allow_html=True,
+        )
         st.link_button("Contact Us", "mailto:grvgulia007@gmail.com")
 
     st.title("MedScan, Your Personal Health Assistant.")
