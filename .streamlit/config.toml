@@ -1,0 +1,23 @@
+[theme]
+base="dark"
+font = "sans serif"
+
+[client]
+showErrorDetails = false
+toolbarMode = "minimal"
+
+[logger]
+
+# Level of logging: 'error', 'warning', 'info', or 'debug'.
+# Default: 'info'
+level = "info"
+messageFormat = "%(asctime)s %(message)s"
+
+[runner]
+fastReruns = true
+
+[server]
+runOnSave = true
+
+[browser]
+gatherUsageStats = true

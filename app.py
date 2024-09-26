@@ -1,5 +1,6 @@
 import os
 import re
+from reportlab.pdfgen import canvas
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
@@ -12,9 +13,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_groq import ChatGroq
 from langchain_community.vectorstores import FAISS
 import streamlit as st
+
 st.set_page_config(layout="wide", page_title="MedScan", page_icon="🩺")
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # Disable caching on data ingestion and text cleaning functions
@@ -78,30 +81,72 @@ def vector_db(_corpus):
 def prompt_chain(_data):
     summ_prompt = ChatPromptTemplate.from_template(
         """
-        Task: Write a concise, detailed, and extensive summary of the following medical report.
+        Your task is to write a concise, detailed, and extensive summary of a medical report. Do not summarize any document that is not a medical report.
 
-    Instructions:
+Please follow these steps and guidelines:
+Steps:
 
-    1. **Understand the Report:** Carefully read the medical report to grasp its key points, findings, and recommendations.
-    2. **Summarize Key Points:** Concisely summarize the main findings, diagnoses, procedures, treatment recommendations, and outcomes.
-    3. **Provide Insights:** Offer insights into potential implications, related conditions, recommended follow-up actions, and alternative treatment options.
-    4. **Generate Questions:** Ask relevant questions that could help clarify the report's content, suggest further investigation, or address potential concerns.
-    5. **Use Plain Language:** Explain complex medical terms or concepts in a clear and understandable way.
-    6. **Avoid Medical Advice:** Refrain from providing medical advice or diagnoses. Always refer users to consult with a healthcare professional.
-    7. **Find Values:** Summarize relevant values, such as lab results, vital signs, and measurements.
-    8. **Include Patient Information:** Provide general patient information, including age and gender (without personally identifiable details).
-    9. **Address Patient Concerns:** Summarize any patient concerns or questions and the corresponding responses if mentioned.
-    10. Tabulation: Use tabulation to organize the summary in a structured manner.
-    11. Bullet Points: Use bullet points to list key findings, diagnoses, and recommendations.
-    12. Title: The summary should have a clear and descriptive title that reflects the content.
-    13. Patient Information: Extract all the relevant patient information from the report including the doctor and hospital details.
+    Verify the Report Type: Before summarizing, verify that the document is indeed a medical report. If it is not, inform the user and ask for a correct document.
+    Understand the Report: Carefully read through the medical report to grasp its key points, findings, and recommendations.
+    Summarize Key Points:
+        Main findings
+        Diagnoses
+        Procedures
+        Treatment recommendations
+        Outcomes
+    Provide Insights: Offer insights into potential implications, related conditions, recommended follow-up actions, and alternative treatment options.
+    Use Plain Language: Explain complex medical terms or concepts in a clear and understandable way.
+    Avoid Medical Advice: Refrain from providing medical advice or diagnoses. Always refer users to consult with a healthcare professional.
+    Find Values: Summarize relevant values, such as lab results, vital signs, and measurements.
+    Include Patient Information: Provide general patient information, including age and gender (without personally identifiable details).
+    Address Patient Concerns: Summarize any patient concerns or questions and the corresponding responses if mentioned.
+    Tabulation and Graphs: Use tables and charts to represent data in a visually appealing way where applicable.
+    Structured Format: Use paragraphs to separate different sections and organize the summary logically.
+    Title: The summary should have a clear and descriptive title that reflects the content.
 
-    Guidelines:
+Guidelines:
 
-    - **Focus on Relevance:** Ensure your responses are directly related to the content of the medical report.
-    - **Be Objective:** Avoid personal opinions or biases in your analysis.
-    - **Provide Clear Explanations:** Use simple language and avoid jargon.
-    - **Be Respectful:** Treat the medical information with sensitivity and respect.
+    Relevance: Focus on information directly related to the content of the medical report.
+    Objectivity: Avoid personal opinions or biases.
+    Explanations: Provide clear explanations and avoid jargon.
+    Respect: Treat the medical information with sensitivity and respect.
+    Accuracy: Verify and double-check the information in your summary using the original medical report.
+    Professionalism: Maintain a professional tone and approach.
+    Comprehensiveness: Cover all key points, findings, and recommendations.
+    Clarity: Ensure your summary is easy to read and understand.
+
+    If the document provided is not a medical report, politely deny the request and ask for a correct document.
+
+    Goal:
+    To provide accurate and relevant responses that adhere to the guidelines. To maintain a high level of quality and professionalism in my responses and maintain the highest standards of accuracy and relevance no matter what the situation is.
+
+    Example Prompt:
+
+Summary of Medical Report
+
+<patient details=“”>
+
+    Key Findings:
+        [Insert key findings]
+
+    Diagnoses:
+        [Insert diagnoses]
+
+    Procedures:
+        [Insert procedures]
+
+    Treatment Recommendations:
+        [Insert treatment recommendations]
+
+    Outcomes:
+        [Insert outcomes]
+
+    Relevant Values:
+        [Insert values in tabulated form]
+
+    Patient Concerns:
+        [Insert patient concerns and responses]
+
 
     The medical report is enclosed below:
     {context}
@@ -117,39 +162,57 @@ def prompt_chain(_data):
 def extract_chain(_model, _extrct_prompt, _extrct_db):
     _extrct_prompt = ChatPromptTemplate.from_template(
         """
-    Task: Answer the user's queries based on the provided summary and the original Medical Report.
+    Your task is to answer the user's queries based on the provided summary and the original Medical Report.
 
     Instructions:
 
-    1. **Understand the Summary:** Carefully read the summary to grasp its key points.
-    2. **Reference the PDF:** Use the original PDF to verify and supplement the information in the summary.
-    3. **Provide Comprehensive Answers:** Combine the information from both the summary and the PDF to provide accurate and informative responses.
-    4. **Be Objective:** Avoid personal opinions or biases in your responses.
-    5. **Be Accurate:** Verify the information in your responses using both sources.
-    6. **Be Professional:** Maintain a professional tone and approach in your responses.
-    7. **Be Respectful:** Treat the medical information with sensitivity and respect.
-    8. **Provide Context:** Your answers should contain the section of the report the information is derived from.
-    9. **Clarity and Detail:** Provide clear and detailed information to answer the query comprehensively.
-    10. **Use Subheadings:** Organize your answers with subheadings to enhance readability.
-    11. **Avoid Medical Advice:** Refrain from providing medical advice or diagnoses. Always refer users to consult with a healthcare professional.
-    12. **Stay on Topic:** Always stay relevant to the query and avoid out-of-context or out-of-scope answers.
-    13. **Greeting Style:** Start with a greeting, then provide the answer in a detailed manner.
-    14. Comments: Your answer should also contain final comments about the query.
-    15. UI: Use good ui design principles like bullet points, bold headings and many more to make the summary visually appealing and easy to read.
-    16. Icons: Provide relating icons for different sections to make the summary more engaging and visually appealing.
-    17. Charts and Graphs: Use charts and graphs to represent data in a more visually appealing way.
-    18. References: Always provide references to the original data to support your answers
-    19. Definitions: Provide definitions for medical terms and jargon to make the summary more understandable if applicable.
-    20. Designing: Use good designing principles to make the summary visually appealing and easy to read.
-    21.Tabulation: Your response should contains output in tabulation format where necessary.
-    22. Focus on presentation: Your response should be well-structured and visually appealing to the reader.
+    1. Understand the Summary: Carefully read the summary to grasp its key points.
+    2. Reference the PDF: Use the original PDF to verify and supplement the information in the summary.
+    3. Provide Comprehensive Answers:
+    - Combine information from both the summary and the PDF.
+    - Ensure accuracy and context in your responses.
+    4. Be Objective: Avoid personal opinions or biases.
+    5. Be Professional: Maintain a professional tone in your answers.
+    6. Clarity and Detail: Provide clear and detailed answers to the query.
+    7. Use Subheadings: Organize your answers with subheadings for better readability.
+    8. Avoid Medical Advice: Do not offer medical advice or diagnoses. Refer users to healthcare professionals if needed.
+    9. Stay on Topic: Ensure your answers are relevant to the query.
+    10. Presentation:
+        - Use bullet points, bold headings, and icons to enhance readability.
+        - Include charts and graphs where applicable.
+    11. Definitions: Provide definitions for any medical terms to enhance understanding.
+    12. Tabulation: Use tables to present information clearly.
 
     Guidelines:
 
-    - **Focus on Relevance:** Ensure your responses are directly related to the query and the summary/Medical Report.
-    - **Be Clear and Detailed:** Explain your answers in an understandable manner with sufficient detail.
-    - **Provide References:** Always reference the original data to support your answers.
-    - **Respect Privacy:** Maintain the privacy of the user and the data at all times.
+    - Relevance: Ensure responses are directly related to the query and the Medical Report.
+    - Accuracy: Validate all information using both the summary and the original PDF.
+    - Privacy: Maintain the privacy of the user and data at all times.
+    - References: Always cite the section from the original data to support your answers.
+    - Presentation: Follow good design principles for a visually appealing and well-structured response.
+
+    Example Prompt:
+
+    Query: What were the main findings in the latest medical report?
+
+    Answer:
+
+    Main Findings:
+
+    | Finding                     | Description                                           | Source Section       |
+    |-----------------------------|-------------------------------------------------------|----------------------|
+    | Diagnosis               | Type 2 Diabetes                                       | Summary: Section 2   |
+    | Lab Results             | Elevated blood glucose levels                         | PDF: Page 4, Table 2 |
+    | Treatment Recommended   | Insulin therapy, dietary changes                      | Summary: Section 3   |
+    | Follow-up Actions       | Monthly blood tests, specialist consultation           | PDF: Page 5, Para. 3 |
+
+    Comments:
+    - The patient should follow up with their healthcare provider regularly to monitor their condition.
+
+    (Note: Use relevant icons and design principles to enhance readability.)
+
+    Goal:
+    To provide accurate and relevant responses that adhere to the guidelines. To maintain a high level of quality and professionalism in my responses and maintain the highest standards of accuracy and relevance no matter what the situation is.
 
     Your context is as follows:
     <context>
@@ -258,7 +321,7 @@ def main():
                 with st.chat_message("🩺"):
                     st.markdown(
                         f"""
-                        <div style="background-color: #21242a; padding: 10px; border-radius: 5px;">
+                        <div style="background-color: #21242a; padding: 14px; border-radius: 6px;">
                         <h4>Summary</h4>
                         {result}
                         </div>
@@ -270,7 +333,9 @@ def main():
                         "<p class='st-b'>  Your Summary Report has been Created, You can download it using the sidebar.</p>",
                         unsafe_allow_html=True,
                     )
-                st.sidebar.download_button(label="Download", data=result, file_name="report.txt")
+                st.sidebar.download_button(
+                    label="Download", data=result, file_name="report.txt", mime="text/plain"
+                )
 
         # Answer follow-up questions
         retrieval_chain = extract_chain(
@@ -288,7 +353,6 @@ def main():
                     st.markdown(
                         f"""
                         <div style="background-color: #21242a; padding: 10px; border-radius: 5px;">
-                        <h4>Answer</h4>
                         {answer}
                         </div>
                         """,
