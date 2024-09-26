@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "med_scan"
-version = "0.0.1"
+version = "0.0.2"
 description = "Ai Based assistant to analyse medical reports"
 authors = [
   { name = "Gourav" },

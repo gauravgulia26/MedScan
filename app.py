@@ -12,7 +12,7 @@ from langchain_groq import ChatGroq
 from langchain_community.vectorstores import FAISS
 import streamlit as st
 
-st.set_page_config(layout="wide", page_title="MedScan", page_icon="🩺")
+st.set_page_config(layout="wide", page_title="Med-Scan Ai", page_icon="🩺")
 # from dotenv import load_dotenv
 
 # load_dotenv()
