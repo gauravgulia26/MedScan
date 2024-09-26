@@ -248,47 +248,66 @@ def main():
             """
         <style>
         .st-b {
-            font-size: 12px;
+            font-size: 14px;
             color: lime;
             # background-color: black;
             # border-radius: 10px;
-            # padding: 4px;
-            text-align: center;
+            # padding: 8px;
+            text-align: left;
         }
         .st-r {
-            font-size: 11px;
-            color: lime;
-            background-color: black;
-            border-radius: 14px;
-            padding: 3px;
+            font-size: 16px;
+            color: white;
+            # background-color: #2f333b;
+            border-radius: 4px;
+            padding: 6px;
+            text-align: left;
+        }
+        .st-e {
+            font-size: 14px;
+            color: white;
+            background-color: #0f1012;
+            border-radius: 6px;
+            padding: 4px;
             text-align: center;
         }
         </style>
         """,
             unsafe_allow_html=True,
         )
-        st.markdown(
-            "<p class='st-r'>Experimental Release. May contains some limitations.</p>",
-            unsafe_allow_html=True,
-        )
         st.sidebar.title("👩‍⚕️ MedScan")
         st.sidebar.markdown(
             """
-            Your Digital Health Assistant.
-
-            Upload your medical document and get a detailed summary ready to be downloaded.
-
-            Ask follow-up questions to get more insights.
+            - Your Digital Health Assistant.
+            - Upload your medical document.
+            - Get a summary of your medical report.
+            - Ask follow-up questions to get more insights.
+            """,
+            unsafe_allow_html=True,
+        )
+        st.sidebar.markdown("""---""")
+        st.sidebar.markdown(
+            """
+            <p class='st-e'><b>Developed with ♥ by Gourav Gulia</b></p>
             """,
             unsafe_allow_html=True,
         )
         st.markdown(
-            "<p class='st-b'>If you get Rate Limit Error, Contact Us.</p>",
+            """
+            <p style="color: white; text-align: center;">
+            <a href="mailto:grvgulia007@gmail.com" style="color: white; text-decoration: none;">Let's Connect 🔗</a>
+            </p>
+            """,
             unsafe_allow_html=True,
         )
-        st.link_button("Contact Us", "mailto:grvgulia007@gmail.com")
 
-    st.title("Med-Scan Your Personal Health Assistant 🏥")
+    # st.link_button("Contact Us", "mailto:grvgulia007@gmail.com")
+    st.title("Your Personal Health Assistant 🏥")
+    st.markdown(
+        "<p class='st-r'>MedScan can make mistakes. Check important info.</p>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("""---""")
     # Clear cached summary when a new PDF is uploaded
     if "prev_file" not in st.session_state:
         st.session_state["prev_file"] = None
@@ -326,13 +345,13 @@ def main():
                         """,
                         unsafe_allow_html=True,
                     )
-                    st.write("\n")
-                    st.markdown(
-                        "<p class='st-b'>  Your Summary Report has been Created, You can download it using the sidebar.</p>",
-                        unsafe_allow_html=True,
-                    )
-                st.sidebar.download_button(
-                    label="Download", data=result, file_name="report.txt", mime="text/plain"
+                    st.markdown("""---""")
+                st.markdown(
+                    "<p class='st-b'>Your Report has been Generated.</p>",
+                    unsafe_allow_html=True,
+                )
+                st.download_button(
+                    label="Download Report", data=result, file_name="report.txt", mime="text/plain"
                 )
 
         # Answer follow-up questions
